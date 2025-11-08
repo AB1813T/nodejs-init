@@ -1,67 +1,52 @@
-import { Router } from 'express';
 import { AuthController } from '../controllers/auth.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { createDocumentedRouter } from '../utils/documentedRouter';
+import { loginSchema } from '../utils/validation';
+import { authTokensSchema } from '../schemas/auth.schema';
+import { messageSchema, successResponse} from '../schemas/response.schema';
 
-const router = Router();
 const authController = new AuthController();
 
-/**
- * @swagger
- * /api/auth/login:
- *   post:
- *     summary: Login user (Local environment only)
- *     tags: [Auth]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *                 minLength: 4
- *     responses:
- *       200:
- *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     accessToken:
- *                       type: string
- *                     refreshToken:
- *                       type: string
- *                     user:
- *                       type: object
- */
-router.post('/login', authController.login);
+const documentedRouter = createDocumentedRouter({
+  basePath: '/api/auth',
+  defaultTags: ['Auth'],
+  secureByDefault: false,
+});
 
+documentedRouter.post(
+  '/login',
+  {
+    summary: 'Login user (Local environment only)',
+    security: false,
+    request: {
+      body: {
+        schema: loginSchema,
+      },
+    },
+    responses: {
+      200: {
+        description: 'Login successful',
+        schema: successResponse(authTokensSchema),
+      },
+    },
+  },
+  authController.login
+);
 
-/**
- * @swagger
- * /api/auth/logout:
- *   post:
- *     summary: Logout user
- *     tags: [Auth]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: Logout successful
- */
-router.post('/logout', authMiddleware, authController.logout);
+documentedRouter.post(
+  '/logout',
+  {
+    summary: 'Logout user',
+    security: true,
+    responses: {
+      200: {
+        description: 'Logout successful',
+        schema: successResponse(messageSchema),
+      },
+    },
+  },
+  authMiddleware,
+  authController.logout
+);
 
-export default router;
+export default documentedRouter.router;

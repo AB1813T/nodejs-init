@@ -1,126 +1,113 @@
-import { Router } from 'express';
 import { BlogController } from '../controllers/blog.controller';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { createDocumentedRouter } from '../utils/documentedRouter';
+import {
+  blogIdSchema,
+  createBlogSchema,
+  updateBlogSchema,
+} from '../utils/validation';
+import {
+  blogListSchema,
+  blogSchema,
+} from '../schemas/blog.schema';
+import { messageSchema, successResponse} from '../schemas/response.schema';
 
-const router = Router();
 const blogController = new BlogController();
+
+const documentedRouter = createDocumentedRouter({
+  basePath: '/api/blogs',
+  defaultTags: ['Blogs'],
+  secureByDefault: true,
+});
+
+const router = documentedRouter.router;
 router.use(authMiddleware);
 
-/**
- * @swagger
- * /api/blogs:
- *   post:
- *     summary: Create a new blog
- *     tags: [Blogs]
- *     security:
- *       - BearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - title
- *               - content
- *             properties:
- *               title:
- *                 type: string
- *                 maxLength: 200
- *               content:
- *                 type: string
- *     responses:
- *       201:
- *         description: Blog created successfully
- */
-router.post('/', blogController.createBlog);
+documentedRouter.post(
+  '/',
+  {
+    summary: 'Create a new blog',
+    request: {
+      body: {
+        schema: createBlogSchema,
+      },
+    },
+    responses: {
+      201: {
+        description: 'Blog created successfully',
+        schema: successResponse(blogSchema),
+      },
+    },
+  },
+  blogController.createBlog
+);
 
-/**
- * @swagger
- * /api/blogs:
- *   get:
- *     summary: Get all blogs for authenticated user
- *     tags: [Blogs]
- *     security:
- *       - BearerAuth: []
- *     responses:
- *       200:
- *         description: List of blogs
- */
-router.get('/', blogController.getBlogs);
+documentedRouter.get(
+  '/',
+  {
+    summary: 'Get all blogs for authenticated user',
+    responses: {
+      200: {
+        description: 'List of blogs',
+        schema: successResponse(blogListSchema),
+      },
+    },
+  },
+  blogController.getBlogs
+);
 
-/**
- * @swagger
- * /api/blogs/{id}:
- *   get:
- *     summary: Get a blog by ID
- *     tags: [Blogs]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Blog details
- */
-router.get('/:id', blogController.getBlog);
+documentedRouter.get(
+  '/:id',
+  {
+    summary: 'Get a blog by ID',
+    request: {
+      params: blogIdSchema,
+    },
+    responses: {
+      200: {
+        description: 'Blog details',
+        schema: successResponse(blogSchema),
+      },
+    },
+  },
+  blogController.getBlog
+);
 
-/**
- * @swagger
- * /api/blogs/{id}:
- *   put:
- *     summary: Update a blog
- *     tags: [Blogs]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               title:
- *                 type: string
- *               content:
- *                 type: string
- *     responses:
- *       200:
- *         description: Blog updated successfully
- */
-router.put('/:id', blogController.updateBlog);
+documentedRouter.put(
+  '/:id',
+  {
+    summary: 'Update a blog',
+    request: {
+      params: blogIdSchema,
+      body: {
+        schema: updateBlogSchema,
+      },
+    },
+    responses: {
+      200: {
+        description: 'Blog updated successfully',
+        schema: successResponse(blogSchema),
+      },
+    },
+  },
+  blogController.updateBlog
+);
 
-/**
- * @swagger
- * /api/blogs/{id}:
- *   delete:
- *     summary: Delete a blog
- *     tags: [Blogs]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *     responses:
- *       200:
- *         description: Blog deleted successfully
- */
-router.delete('/:id', blogController.deleteBlog);
+documentedRouter.delete(
+  '/:id',
+  {
+    summary: 'Delete a blog',
+    request: {
+      params: blogIdSchema,
+    },
+    responses: {
+      200: {
+        description: 'Blog deleted successfully',
+        schema: successResponse(messageSchema),
+      },
+    },
+  },
+  blogController.deleteBlog
+);
 
 export default router;

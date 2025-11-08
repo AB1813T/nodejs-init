@@ -2,7 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
-import { swaggerSpec } from './utils/swagger';
+import { buildSwaggerSpec } from './utils/swagger';
 import { errorHandler } from './middleware/error.middleware';
 import { limiter } from './middleware/rateLimit.middleware';
 import authRoutes from './routes/auth.routes';
@@ -10,6 +10,7 @@ import blogRoutes from './routes/blog.routes';
 import userRoutes from './routes/user.routes';
 
 const app: Application = express();
+const swaggerSpec = buildSwaggerSpec();
 app.use(helmet());
 app.use(cors());
 app.use('/api', limiter);
