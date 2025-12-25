@@ -8,7 +8,7 @@ const authService = new AuthService();
 export class AuthController {
   async login(req: Request, res: Response, next: NextFunction) {
     try {
-      if (config.env !== 'local') {
+      if (config.env !== 'local' && config.env !== 'development' && config.env !== 'test') {
         return res.status(403).json({
           success: false,
           error: 'Login endpoint is only available in local environment',
